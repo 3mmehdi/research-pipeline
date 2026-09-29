@@ -1,0 +1,77 @@
+{
+  "skill_name": "research-pipeline",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/research-pipeline Best practices, advanced optimization, and daily workflow usage of Claude Code as an AI agent",
+      "expected_output": "MODE 1 (full pipeline). Phase 0 runs a vault state check against notebooks registry — if Claude Code already exists as an active topic, offers extend/resume/new-thread/cancel gate. Otherwise proceeds to Phase 1 (vault scan + WebSearch), then through phases 2-14 normally. Phase 13 writes a new row to wiki/meta/notebooks.md and refreshes hot.md's active-notebooks table.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "research this topic using NotebookLM: Zero Trust network segmentation for small businesses",
+      "expected_output": "MODE 1 (full pipeline). Phase 0 finds no existing overlap (Zero Trust isn't in the registry), proceeds silently. Phase 1 scans vault sources, finds nothing relevant, runs WebSearch normally. notebook_id added to the registry at Phase 13.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Build me a research notebook on Pokémon card grading services — PSA vs BGS vs CGC — for resell sourcing decisions",
+      "expected_output": "MODE 1 full pipeline with phase-0 vault check (no overlap), filed to .raw/Projets/, auto-ingested with entity pages for PSA, BGS, CGC and cross-links into revente/. Registry updated.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "help research",
+      "expected_output": "MODE 2 (help). Emits the Markdown cheat sheet covering the 14-phase workflow, the 6 operational modes (full/help/resume/add-URL/reconcile/freshness), the Phase 12b update loop, and the companion commands for claude-obsidian and notebooklm-py. No pipeline started.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "resume research on [[Claude Code]]",
+      "expected_output": "MODE 3 (resume). Skill reads wiki/meta/notebooks.md, finds notebook_id d810e875-e63b-4226-a94d-78bca0c7ab3a for the Claude Code topic, health-checks via `notebooklm list --json`, then jumps DIRECTLY to the Phase 12 deliverables menu against that existing notebook. NO WebSearch, NO new briefing. User can pick quiz/flashcards/audio/infographic/none/add-sources from the menu.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "extend my Claude Design research",
+      "expected_output": "MODE 3 (resume) — natural-language variant, no wikilink syntax. Skill resolves Claude Design topic to notebook dd55ccc7-83fd-4e12-a6ac-b9ce3ecfc4ba from the registry and opens the Phase 12 menu.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "add this URL to my Claude Design research: https://some-new-source.com/article",
+      "expected_output": "MODE 4 (add-URL natural language). Skill resolves Claude Design → notebook dd55ccc7-... from registry. Skips menu entirely. Runs Phase 12b.2 (source add) → 12b.3 (wait) → 12b.4 (regenerate briefing with update steering prompt) → 12b.5 (download) → 12b.6 (finalize with -update-<timestamp> suffix) → 12b.7 (delta ingest) → 12b.8 (contradiction lint) → 12b.9 (summary + registry update). Pipeline ends, no menu re-display unless cap reached.",
+      "files": []
+    },
+    {
+      "id": 8,
+      "prompt": "étends ma recherche Claude Code avec ces liens : https://example.com/a et https://youtu.be/xyz",
+      "expected_output": "MODE 4 (add-URL, French natural language with multiple URLs). Same flow as eval 7 but against the Claude Code notebook, with 2 URLs to add.",
+      "files": []
+    },
+    {
+      "id": 9,
+      "prompt": "reconcile contradictions",
+      "expected_output": "MODE 5. Skill greps all `> [!contradiction]` callouts across wiki/, deduplicates reciprocal pairs, presents each conflict with the 2 sources side-by-side and 6 resolution options (keep-initial / keep-alternative / both-valid-with-note / defer / skip / stop). Applies the user's choice by editing both pages and logs decisions under a new wiki/log.md entry. Final summary counts the resolutions.",
+      "files": []
+    },
+    {
+      "id": 10,
+      "prompt": "research freshness check",
+      "expected_output": "MODE 6. Skill reads wiki/meta/notebooks.md, buckets active topics by age (green/yellow/orange/red relative to today), lists orange + red topics with their notebook_id and wiki page, offers per-topic actions (A=update pass / B=autoresearch gap-fill / C=archive / D=log-only). Dispatches based on user reply.",
+      "files": []
+    },
+    {
+      "id": 11,
+      "prompt": "/research-pipeline Claude Code agentic patterns",
+      "expected_output": "MODE 1 full pipeline triggers Phase 0 vault state check — detects STRONG overlap with existing 'Claude Code — meilleures pratiques 2026' topic (shared primary entity + high keyword overlap). Presents the 4-option gate: extend / resume / new-thread / cancel. User's numeric reply routes to the right mode. This is the core silo-prevention test.",
+      "files": []
+    },
+    {
+      "id": 12,
+      "prompt": "[Context: user just picked option 3 (Audio Overview) in Phase 12, the MP3 downloaded successfully to .raw/Projets/audio/claude-design.mp3]",
+      "expected_output": "Phase 17 (transcription hook) auto-triggers. Skill offers to transcribe the podcast as a wiki source or skip to Phase 13. On user confirm, spawns a subagent to transcribe with whatever tool is available (whisper.cpp / ffmpeg+OpenAI / etc), saves to .raw/Projets/audio/<slug>-transcript.md with source-type frontmatter, then invokes claude-obsidian:wiki-ingest in DELTA MODE against the same notebook_id so the transcript merges into existing pages rather than creating duplicates. Non-fatal on tool absence.",
+      "files": []
+    }
+  ]
+}
