@@ -88,3 +88,7 @@ prêt à installer.
 ## Licence
 
 MIT. Voir [LICENSE](LICENSE).
+
+## Mises à jour
+
+- **24/11/2026** : description raccourcie (même déclencheurs, moins de jetons chargés à chaque session). Recherche Perplexity (`perplexity_search`) ajoutée à côté de WebSearch en phase 1, et en pré-passe avant autoresearch : une recherche par trou, qui a déjà invalidé un « trou » que le corpus NotebookLM avait manqué.

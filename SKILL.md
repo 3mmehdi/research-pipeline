@@ -1,6 +1,6 @@
 ---
 name: research-pipeline
-description: 'Mehdi''s "super skill" / God Mode topic research — a 14-phase NotebookLM-backed orchestration. WebSearch → NotebookLM notebook + source upload → French briefing-doc → auto-ingest (claude-obsidian:wiki-ingest) → auto-lint for contradictions (claude-obsidian:wiki-lint) → French Protocole d''Expérimentation (Zhutov-style hypothesis + checkboxes) → mind-map → visual canvas (claude-obsidian:canvas) → interactive deliverables menu (quiz / flashcards / audio overview / infographic) → final report → autonomous gap-filling pass (claude-obsidian:autoresearch). ONLY skill that produces a NotebookLM-backed, citation-rich French brief PLUS protocol PLUS canvas map PLUS on-demand podcast/quiz/flashcards PLUS an automatic autoresearch sweep of the remaining blind spots, all filed into the Obsidian vault. MUST trigger on any of: "/research-pipeline", "/research-pipeline [topic]", "super skill", "god mode", "research X using notebooklm", "send these sources to notebooklm", "build me a research notebook on X", "deep-dive X using notebooklm", "audio overview of X" (when sources still need curating), "french briefing on X", "experiments protocol on X", "canvas map of X research", "research X and file it", "full research pipeline on X", "gap-fill research on X", or any topic-in → filed-brief-out request that mentions NotebookLM, wants French output, or asks for a synthesized-and-filed artifact. NOT the same as a bare call to claude-obsidian:autoresearch — this skill curates sources into a PERSISTENT NotebookLM notebook, produces a French briefing, protocol file, and canvas, optionally spins up podcasts/quizzes/flashcards, and THEN invokes autoresearch as a final gap-filling pass (the two are composed, not competitors). Prefer this skill whenever NotebookLM, French output, God Mode, a full research pipeline, or any mention of protocol/canvas/deliverables/gap-filling tied to research is involved. Multi-phase, long-running orchestration — do NOT attempt inline; delegate to the skill. ALSO triggers on help / cheat-sheet queries — phrases like "help research", "how does this work", "list commands", "list research commands", "research cheat sheet", "what can research-pipeline do", "/research-pipeline help" — in HELP MODE the skill prints a Markdown cheat sheet covering the 14-phase workflow AND the companion commands for both plugins (claude-obsidian: /wiki, ingest [file], /save, /autoresearch [topic], /canvas, lint the wiki ; notebooklm-py: create notebook, source add URL / YouTube / PDF, generate report / audio / mind-map / quiz / flashcards / infographic, artifact wait, download), then stops — NO pipeline run in help mode. ALSO supports an iterative update loop: Phase 12 menu includes option 6 ("Add new links/sources") that re-uses the existing NotebookLM notebook to ingest fresh URLs, regenerate the briefing, re-ingest into Obsidian without breaking existing wikilinks, and lint for contradictions between old and new data — the menu then re-displays so the user can keep iterating. ALSO supports 4 additional entry modes beyond the full pipeline: (a) RESUME MODE — triggers "resume research on [[X]]", "/research-pipeline resume [[X]]", "extend my X research" — skips Phases 1-11 and jumps directly to the Phase 12 menu against an existing notebook (looked up via the wiki/meta/notebooks.md registry) ; (b) ADD-URL MODE — triggers "add this URL to my X research", "add these sources to [[X]]", "étends ma recherche X avec" — resolves the notebook_id from the registry and runs Phase 12b.2-9 directly without any menu ceremony ; (c) RECONCILE MODE — triggers "reconcile contradictions", "/research-pipeline reconcile", "resolve open contradictions in wiki" — walks through every [!contradiction] callout in the wiki and offers a structured resolution workflow ; (d) FRESHNESS MODE — triggers "research freshness check", "which topics need refresh", "/research-pipeline freshness" — scans the notebooks registry and flags topics > 6 months old for update. Phase 0 runs a vault-state pre-check on every full-pipeline call to detect topic overlap with existing research (≥ 60 % overlap → asks user to extend an existing notebook instead of creating a new silo). Phase 1 is vault-aware: scans wiki/sources/ for already-ingested URLs relevant to the topic and surfaces them alongside WebSearch results in the approval gate.'
+description: 'Mehdi''s "super skill" / God Mode topic research, filed in French into the Obsidian vault via a PERSISTENT NotebookLM notebook: sources → French briefing → wiki ingest + contradiction lint → Protocole d''Expérimentation → canvas → deliverables menu (quiz, flashcards, audio, infographic) → autoresearch gap-fill. MUST trigger on: "/research-pipeline [topic]", "super skill", "god mode", "research X using notebooklm", "deep-dive X using notebooklm", "build me a research notebook on X", "french briefing on X", "research X and file it", "full research pipeline on X", "fais-moi un topo complet sur X", or any topic-in → filed-brief-out request mentioning NotebookLM, French output, protocol, canvas or deliverables. Other modes: HELP ("help research", "/research-pipeline help": cheat sheet only, no run); RESUME ("resume research on [[X]]", "extend my X research"); ADD-URL ("add this URL to my X research", "étends ma recherche X avec"); RECONCILE ("reconcile contradictions"); FRESHNESS ("research freshness check"). Composes with claude-obsidian:autoresearch (runs it as the final pass), not a competitor. Long multi-phase orchestration: delegate to the skill, never inline.'
 ---
 
 # Research Pipeline — God Mode
@@ -44,7 +44,7 @@ If the same message also contains a concrete research topic ("help, research tra
 
 Gère **TOUT le cycle de vie** d'une recherche dans ton vault, en pont entre Claude, NotebookLM et Obsidian :
 
-1. **Création** — WebSearch → notebook NotebookLM → briefing FR → ingest Obsidian → lint → protocole → canvas → livrables → autoresearch
+1. **Création** — WebSearch + Perplexity Search → notebook NotebookLM → briefing FR → ingest Obsidian → lint → protocole → canvas → livrables → autoresearch
 2. **Mise à jour** — ajoute des sources à un notebook existant, met à jour le wiki en mode delta sans casser les wikilinks
 3. **Reprise** — rouvre le menu des livrables sur n'importe quelle recherche déjà faite
 4. **Maintenance** — résout les contradictions accumulées, audite la fraîcheur des topics, archive les obsolètes
@@ -248,6 +248,8 @@ Tout livrable écrit dans le vault est en français. Toujours passer `--language
 | `source add` timeout 30 s | La source est souvent ajoutée côté serveur malgré l'erreur — vérifier avec `notebooklm source list` |
 | Rate-limit sur `generate audio/quiz/flashcards` | Retry après 5 min |
 | Wiki-ingest crée des doublons | Relire le prompt ingest : rappeler qu'il s'agit d'un update et pointer vers la page existante |
+| `perplexity_ask` / `_reason` / `_research` → 403 « requires paid credits » | Normal : la clé n'a pas de crédit Agent API. N'utiliser que `perplexity_search` |
+| Outils `mcp__perplexity__*` absents de la session | Serveur ajouté en cours de session : redémarrer Claude Code, ou appeler `POST https://api.perplexity.ai/search` en REST (clé dans la variable d'environnement utilisateur Windows) |
 | Le canvas ne s'ouvre pas | Le JSON mind-map est préservé dans `AppData/Local/Temp/` — relancer la création de canvas manuellement |
 ```
 
@@ -395,7 +397,19 @@ grep -rE '^(source_url|url):|^- url:' "$VAULT/wiki/sources/" 2>/dev/null | head 
 
 Build a mental map `{url → (source_page, topic)}`. When a vault URL keyword-matches the new topic (shared primary entity, ≥ 2 shared nouns), mark it as a **"déjà dans le vault"** candidate.
 
-#### 1b — WebSearch
+#### 1b — WebSearch + Perplexity Search (since 2026-11-08)
+
+**Perplexity MCP** (`perplexity` server, remote `https://api.perplexity.ai/mcp`, user scope) is available. Use **`perplexity_search`** alongside `WebSearch`:
+- `perplexity_search` returns **dated** results (`date`, `last_updated`) and accepts `search_recency_filter`, `search_domain_filter` and `search_type: "fast"`. Prefer it for recency-sensitive topics and for **French-language** sources (WebSearch is US-only).
+- Cost: **$0.005 per request** (fast: $0.001). A request may carry **up to 5 queries in one array, billed as one unit — but `max_results` caps the TOTAL across the array**, not per query. For breadth, send one query per request.
+- ⚠️ **`perplexity_ask`, `perplexity_reason`, `perplexity_research` are UNAVAILABLE** on a key without Agent API credits (Agent API → `403 restricted_api_key, requires paid credits`, verified 2026-11-08). Do not call them; do not substitute them for NotebookLM synthesis. Only `perplexity_search` works.
+- If the MCP tools are not loaded in the session (server added mid-session), call the REST endpoint directly — the key lives in the Windows **user** environment, not the shell:
+  ```bash
+  K=$(powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('PERPLEXITY_API_KEY','User')" | tr -d '
+')
+  curl -s -X POST https://api.perplexity.ai/search -H "Authorization: Bearer $K" -H "Content-Type: application/json" -d '{"query":"<q>","max_results":8}'
+  ```
+  Never echo `$K`.
 
 - Run 2–3 `WebSearch` queries. Vary phrasing: one literal, one with "best practices" / "guide" / "2026", one with "youtube" or "site:youtube.com" to bias toward video results.
 - For any URL that looks like a YouTube shorts/playlist/channel rather than a concrete video, drop it — NotebookLM ingests single video URLs best.
@@ -951,6 +965,8 @@ After Phase 13's summary is emitted, kick off an autonomous follow-up research l
    ```
    Complementary coverage of <topic> beyond the NotebookLM briefing at <briefing_path>. Prioritize angles not represented in that briefing's source list — recent criticism, counter-arguments, adjacent fields, case studies.
    ```
+
+**Perplexity pre-pass (since 2026-11-08, cheap, run first).** Before invoking autoresearch, run 1 `perplexity_search` per gap (≈ $0.005 each). If the results already close a gap — or **contradict** the briefing's claim that a gap exists — record that directly in the briefing's wiki source page (section « Trous restants ») and drop the gap from the seed. Only gaps still open go to autoresearch. Rationale: on 2026-11-08 the « no public AI-visibility audit of a named brand » gap was disproved by two Perplexity searches (Brantial, Sorank, Dekuple sector studies) that the NotebookLM corpus had missed.
 
 **Invocation:**
 
